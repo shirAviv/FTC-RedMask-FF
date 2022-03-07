@@ -22,7 +22,6 @@ public class Teleop_v4 extends LinearOpMode {
     private DcMotor rightRear;
     private DcMotor arm_lift;
     private DcMotor suction;
-    private DcMotor arm_rotator;
     private DcMotor duck;
     private CRServo lift;
     private CRServo shipping_element;
@@ -137,14 +136,16 @@ public class Teleop_v4 extends LinearOpMode {
 
             //arm lift
             if (gamepad1.left_stick_y < 0.0 || gamepad1.right_stick_y < 0.0) {
-                arm_lift.setDirection(DcMotorSimple.Direction.REVERSE);
-                arm_lift.setPower(0.7);
-            } else if ((gamepad1.left_stick_y > 0.0) || (gamepad1.right_stick_y > 0.0)) {
                 arm_lift.setDirection(DcMotorSimple.Direction.FORWARD);
+                arm_lift.setPower(0.4);
+            } else if ((gamepad1.left_stick_y > 0.0) || (gamepad1.right_stick_y > 0.0)) {
+                arm_lift.setDirection(DcMotorSimple.Direction.REVERSE);
                 arm_lift.setPower(0.7);
             } else {
                 arm_lift.setPower(0);
             }
+            telemetry.addData("position" , arm_lift.getCurrentPosition());
+            telemetry.update();
 
             //arm rotate
             /*
@@ -165,13 +166,13 @@ public class Teleop_v4 extends LinearOpMode {
             if (gamepad1.right_bumper) {
                 lift.setDirection(DcMotorSimple.Direction.FORWARD);
 
-                lift.setPower(0.9);
+                lift.setPower(0.4);
                 telemetry.addData("lift	= ", lift.getPower());
                 telemetry.update();
             } else if (gamepad1.left_bumper) {
                 lift.setDirection(DcMotorSimple.Direction.REVERSE);
 
-                lift.setPower(0.9);
+                lift.setPower(0.4);
                 telemetry.addData("lift reverse	= ", lift.getPower());
                 telemetry.update();
 
