@@ -9,8 +9,8 @@ import com.qualcomm.robotcore.util.ElapsedTime;
 
 
 
-@Autonomous(name="Blue_warehouse_shippingHub" , group = "blue")
-public class Blue_warehouse_shippingHub extends LinearOpMode {
+@Autonomous(name="Blue_storage_shippingHub_1" , group = "blue")
+public class Blue_storage_shippingHub extends LinearOpMode {
 
 
     private DcMotor leftFront; // port 0
@@ -376,21 +376,20 @@ public class Blue_warehouse_shippingHub extends LinearOpMode {
 
         //===================================== PROGRAM ================================
 
-        drive("L" , 42 , 0.7,null);
+        drive("R" , 38 , 0.7,null);
 
         drive("B" , (69- 15) , 0.7 , null);
-        arm_lift_auto(3 , "up");
+        arm_lift_auto(2 , "up");
         throw_out("out" ,1, 0.7);
-        arm_lift_auto(3 , "down");
-        turn_in_cm(90 , "right");
-        drive("L" , (69-17) , 0.7 , null);
-        drive("F" , 120 , 0.5 , null );
-        /*
+        arm_lift_auto(2 , "down");
+        drive("F" , (69-20) , 0.7 , null);
+        turn_in_cm(90 , "left");
+        drive("F" , 95 , 0.5 , null );
         duck_drop("L", 2);
         drive("B" , 5 , 0.5 , null);
         drive("L" , 75 , 0.7 , null);
         drive("F" , 12 , 0.5 , null);
-*/
+
 
 
 
