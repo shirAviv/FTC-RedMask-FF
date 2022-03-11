@@ -14,11 +14,13 @@ import org.opencv.core.Scalar;
 import org.opencv.imgproc.Imgproc;
 import org.openftc.easyopencv.OpenCvCamera;
 import org.openftc.easyopencv.OpenCvCameraFactory;
+import org.openftc.easyopencv.OpenCvCameraRotation;
 import org.openftc.easyopencv.OpenCvPipeline;
+import org.openftc.easyopencv.OpenCvWebcam;
 
 @TeleOp(name = "camera_1_9", group = "RedMask")
 public class Camera extends LinearOpMode {
-    OpenCvCamera webcam;
+    OpenCvWebcam webcam;
 
     boolean position_1 = false;
     boolean position_2 = false;
@@ -37,13 +39,14 @@ public class Camera extends LinearOpMode {
         pipeline = new ff_detector();
         webcam.setPipeline(pipeline);
 
+        webcam.setMillisecondsPermissionTimeout(2500);
 
         //while (opModeIsActive()) {
         webcam.openCameraDeviceAsync(
                 new OpenCvCamera.AsyncCameraOpenListener() {
                     @Override
                     public void onOpened() {
-                        webcam.startStreaming(640, 480);
+                        webcam.startStreaming(640, 360, OpenCvCameraRotation.UPRIGHT);
                         telemetry.addData("1: ", "in opened");
                         telemetry.addData("FPS = ", webcam.getFps());
                         telemetry.update();
@@ -58,24 +61,38 @@ public class Camera extends LinearOpMode {
                 }
 
         );
+
+        waitForStart();
         //}
 
 
        // while (!isStarted() && !isStopRequested()) {
-        while(0==0) {
-            telemetry.addData("Realtime analysis", pipeline.getAnalysis());
-            telemetry.addData("position 1: ", position_1);
-            telemetry.addData("position 2: ", position_2);
-            telemetry.addData("position 3: ", position_3);
-            telemetry.addData("FPS = ", webcam.getFps());
-            telemetry.addData("FPS = ", webcam.getFrameCount());
+        while(opModeIsActive()) {
+            telemetry.addData("Frame count", webcam.getFrameCount());
+            telemetry.addData("Fps", webcam.getFps());
+//            telemetry.addData("Frame count", webcam.getFrameCount());
+//            telemetry.addData("position 1: ", position_1);
+//            telemetry.addData("position 2: ", position_2);
+//            telemetry.addData("position 3: ", position_3);
+//            telemetry.addData("FPS = ", webcam.getFps());
+//            telemetry.addData("FPS = ", webcam.getFrameCount());
+            int test=pipeline.getTest();
+            boolean pos=pipeline.getLast_position();
+            telemetry.addData("test",test);
+            telemetry.addData("pos", pos);
+            telemetry.addData("pos1", position_1);
+            telemetry.addData("pos2", position_2);
+            telemetry.addData("pos3", position_3);
             telemetry.update();
 
+
+
             // Don't burn CPU cycles busy-looping in this sample
-            sleep(50);
+            sleep(500);
+            webcam.closeCameraDevice();
 
 
-            String snapshotAnalysis = pipeline.getAnalysis();
+//            String snapshotAnalysis = pipeline.getAnalysis();
 
 
             /*
@@ -84,39 +101,6 @@ public class Camera extends LinearOpMode {
 //        telemetry.addData("Snapshot post-START analysis", snapshotAnalysis);
 //        telemetry.update();
 
-            boolean pos = pipeline.getLast_position();
-//        telemetry.addData("2: ", pos);
-//        telemetry.update();
-
-            switch (snapshotAnalysis) {
-                case "LEFT": {
-                    /* Your autonomous code */
-                    telemetry.addData("1: ", "in left");
-                    telemetry.update();
-                    break;
-                }
-
-                case "RIGHT": {
-                    /* Your autonomous code */
-                    telemetry.addData("1: ", "in right");
-                    telemetry.update();
-                    break;
-                }
-
-                case "CENTER": {
-                    telemetry.addData("2: ", "in center");
-                    telemetry.update();
-                    /* Your autonomous code*/
-                    break;
-                }
-
-                case "NONE": {
-                    telemetry.addData("Opps: ", "default");
-                    telemetry.update();
-                    break;
-
-                }
-            }
         }//====>>
             /* You wouldn't have this in your autonomous, this is just to prevent the sample from ending */
           //  while (!isStopRequested()) {
@@ -126,26 +110,36 @@ public class Camera extends LinearOpMode {
 
 
 
-        //telemetry.update();
 
-
-//        }
-//        webcam.stopStreaming();
     }
 
     class ff_detector extends OpenCvPipeline {
         //private final double[] hslThresholdHue = {0.0, 34.09556313993175};
         //private final double[] hslThresholdSaturation = {110.07194244604317, 248.47269624573377};
         //private final double[] hslThresholdLuminance = {59.62230215827338, 255.0};
+        /*
         private final double[] hslThresholdHue = {6.474820143884892, 17.201365187713304};
         private final double[] hslThresholdSaturation = {135.0356137566533, 250.62211042962218};
         private final double[] hslThresholdLuminance = {155.93525179856115, 226.71501706484642};
+         */
+        private final double[] hslThresholdHue = {0, 255};
+        private final double[] hslThresholdSaturation = {0 , 255};
+        private final double[] hslThresholdLuminance = {0, 255};
+
 
         public boolean getLast_position() {
             return last_position;
         }
 
         boolean last_position = true;
+        Mat filtered;
+        Mat out;
+        int test=5;
+
+        public int getTest()
+        {
+            return test;
+        }
 
 
         @Override
@@ -154,29 +148,39 @@ public class Camera extends LinearOpMode {
             telemetry.update();
 
 
-            Mat filtered = new Mat();
+             filtered= new Mat();
 
 
             hslThreshold(input, hslThresholdHue, hslThresholdSaturation, hslThresholdLuminance, filtered);
 
-            Mat out = new Mat();
+            out = new Mat();
+            Mat rec1 = filtered.submat(new Rect(115, 120, 120, 220));
+            Mat rec2 = filtered.submat(new Rect(334, 110, 135, 215));
+            Mat rec3= filtered.submat(new Rect(515, 120, 120, 215));
+            int num_pixels_non_zero= Core.countNonZero(rec1);
+            telemetry.addData("2: ", num_pixels_non_zero);
+            telemetry.update();
 
-            if (Core.countNonZero(filtered.submat(new Rect(115, 120, 120, 220))) > 100) {
+            if (num_pixels_non_zero > 100) {
                 position_1 = true;
 
-            } else if (Core.countNonZero(filtered.submat(new Rect(334, 110, 135, 215))) > 100) {
+            } else if (Core.countNonZero(rec2) > 100) {
                 position_2 = true;
-            } else if (Core.countNonZero(filtered.submat(new Rect(515, 120, 120, 215))) > 100) {
+            } else if (Core.countNonZero(rec3) > 100) {
                 position_3 = true;
             }
 
             mask(input, filtered, out);
             last_position = position_1 || position_2 || position_3;
 
-            input.release();
+            rec1.release();
+            rec2.release();
+            rec3.release();
+            out.release();
             filtered.release();
 
-            return out;
+            return input;
+//             return input;
         }
 
         private void hslThreshold(Mat input, double[] hue, double[] sat, double[] lum,
